@@ -170,3 +170,28 @@ tbody tr:hover {
         padding: 15px;
     }
 }
+
+#leftTable {
+    min-width: 800px;
+}
+
+#leftTable th:nth-child(1) {
+    width: 100px;
+}
+
+#leftTable th:nth-child(2) {
+    width: 130px;
+}
+
+#leftTable th:nth-child(3) {
+    width: 250px;
+}
+
+#leftTable th:nth-child(4),
+#leftTable th:nth-child(5) {
+    width: 90px;
+}
+
+#leftTable th:nth-child(6) {
+    width: 80px;
+}
