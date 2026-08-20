@@ -1,18 +1,15 @@
 const inputText = document.getElementById("inputText");
-
 const loadButton = document.getElementById("loadButton");
 const clearTableButton = document.getElementById("clearTable");
-
 const leftTable = document.getElementById("leftTable");
 
 
 // ============================================
-// УДАЛЕНИЕ MARKDOWN-ФОРМАТИРОВАНИЯ
+// Очистка содержимого ячейки
 // ============================================
 
 function cleanCell(value) {
     return value
-        .trim()
         .replace(/\*\*/g, "")
         .replace(/__/g, "")
         .trim();
@@ -20,28 +17,76 @@ function cleanCell(value) {
 
 
 // ============================================
-// ПРОВЕРКА: ЯВЛЯЕТСЯ ЛИ СТРОКА РАЗДЕЛИТЕЛЕМ
+// Разбор строки Markdown-таблицы
+// ============================================
+
+function parseTableLine(line) {
+
+    // Убираем пробелы по краям
+    line = line.trim();
+
+    // Строка должна содержать |
+    if (!line.includes("|")) {
+        return null;
+    }
+
+    // Убираем первую и последнюю |
+    if (line.startsWith("|")) {
+        line = line.substring(1);
+    }
+
+    if (line.endsWith("|")) {
+        line = line.substring(0, line.length - 1);
+    }
+
+    // Разделяем на колонки
+    const cells = line
+        .split("|")
+        .map(cleanCell);
+
+    return cells;
+}
+
+
+// ============================================
+// Проверка строки-разделителя
 // ============================================
 
 function isSeparatorRow(cells) {
-    if (cells.length !== 6) {
+
+    if (!cells || cells.length !== 6) {
         return false;
     }
 
     return cells.every(cell => {
-        const value = cell.trim();
-
-        // Например:
-        // :-----------:
-        // :------------:
-        // -------------
-        return /^:*-+:*$/.test(value);
+        return /^:?-+:?$/.test(cell);
     });
 }
 
 
 // ============================================
-// ЗАГРУЗКА ТАБЛИЦЫ
+// Проверка заголовка
+// ============================================
+
+function isHeaderRow(cells) {
+
+    if (!cells || cells.length !== 6) {
+        return false;
+    }
+
+    return (
+        cells[0].toLowerCase() === "категорія" &&
+        cells[1].toLowerCase() === "суб категорія" &&
+        cells[2].toLowerCase() === "інгредієнт" &&
+        cells[3].toLowerCase() === "мін к-сть" &&
+        cells[4].toLowerCase() === "макс к-сть" &&
+        cells[5].toLowerCase() === "шанс"
+    );
+}
+
+
+// ============================================
+// ЗАГРУЗКА
 // ============================================
 
 loadButton.addEventListener("click", () => {
@@ -54,84 +99,74 @@ loadButton.addEventListener("click", () => {
     }
 
 
+    // Разбиваем текст на строки
     const lines = text
         .split(/\r?\n/)
         .map(line => line.trim())
         .filter(line => line !== "");
 
 
+    let headerFound = false;
     const rows = [];
 
 
     // ========================================
-    // ОБРАБОТКА КАЖДОЙ СТРОКИ
+    // Обрабатываем строки
     // ========================================
 
     for (const line of lines) {
 
-        // Нам нужны только строки с |
-        if (!line.includes("|")) {
+        const cells = parseTableLine(line);
+
+        // Это не строка таблицы
+        if (!cells) {
             continue;
         }
 
 
-        // ------------------------------------
-        // Разделяем строку на колонки
-        // ------------------------------------
+        // ====================================
+        // Ищем заголовок
+        // ====================================
 
-        let cells = line.split("|");
+        if (!headerFound) {
 
+            if (isHeaderRow(cells)) {
+                headerFound = true;
+            }
 
-        // Если строка начинается с |
-        if (cells[0].trim() === "") {
-            cells.shift();
-        }
-
-
-        // Если строка заканчивается |
-        if (cells.length > 0 && cells[cells.length - 1].trim() === "") {
-            cells.pop();
-        }
-
-
-        // Очищаем каждую ячейку
-        cells = cells.map(cleanCell);
-
-
-        // ------------------------------------
-        // Нам нужны ровно 6 колонок
-        // ------------------------------------
-
-        if (cells.length !== 6) {
-            console.log("Пропущена строка:", line);
-            console.log("Найдено колонок:", cells.length);
+            // Всё до заголовка игнорируем
             continue;
         }
 
 
-        // ------------------------------------
+        // ====================================
         // Пропускаем разделитель
-        // ------------------------------------
+        // ====================================
 
         if (isSeparatorRow(cells)) {
             continue;
         }
 
 
-        // ------------------------------------
-        // Пропускаем заголовок
-        // ------------------------------------
+        // ====================================
+        // Нам нужно ровно 6 колонок
+        // ====================================
 
-        const firstCell = cells[0].toLowerCase();
+        if (cells.length !== 6) {
+            console.warn(
+                "Пропущена строка:",
+                line,
+                "Колонок:",
+                cells.length
+            );
 
-        if (firstCell === "категорія") {
             continue;
         }
 
 
-        // ------------------------------------
-        // Получаем данные
-        // ------------------------------------
+        // ====================================
+        // Получаем значения
+        // ====================================
 
         const category = cells[0];
         const subCategory = cells[1];
@@ -141,45 +176,54 @@ loadButton.addEventListener("click", () => {
         const chance = cells[5];
 
 
-        // ------------------------------------
+        // ====================================
         // Проверяем обязательные поля
-        // ------------------------------------
+        //
+        // chance НЕ проверяем, потому что
+        // он может быть пустым
+        // ====================================
 
         if (
-            category === "" ||
-            subCategory === "" ||
-            ingredient === "" ||
-            minCount === "" ||
-            maxCount === ""
+            !category ||
+            !subCategory ||
+            !ingredient ||
+            !minCount ||
+            !maxCount
         ) {
+            console.warn(
+                "Пропущена неполная строка:",
+                cells
+            );
+
             continue;
         }
 
 
-        // ------------------------------------
+        // ====================================
         // Добавляем строку
-        // ------------------------------------
+        // ====================================
 
-        rows.push([
+        rows.push({
             category,
             subCategory,
             ingredient,
             minCount,
             maxCount,
             chance
-        ]);
+        });
     }
 
 
     // ========================================
-    // ПРОВЕРКА РЕЗУЛЬТАТА
+    // Проверяем наличие заголовка
     // ========================================
 
-    if (rows.length === 0) {
+    if (!headerFound) {
 
         alert(
-            "Не вдалося знайти дані таблиці.\n\n" +
-            "Перевірте формат вставленої таблиці."
+            "Не вдалося знайти заголовок таблиці.\n\n" +
+            "Потрібні колонки:\n\n" +
+            "Категорія | Суб категорія | Інгредієнт | Мін к-сть | Макс к-сть | Шанс"
         );
 
         return;
@@ -187,7 +231,22 @@ loadButton.addEventListener("click", () => {
 
 
     // ========================================
-    // ДОБАВЛЯЕМ В LEFT TABLE
+    // Проверяем наличие строк
+    // ========================================
+
+    if (rows.length === 0) {
+
+        alert(
+            "Заголовок таблиці знайдено,\n" +
+            "але даних після нього немає."
+        );
+
+        return;
+    }
+
+
+    // ========================================
+    // Добавляем строки в leftTable
     // ========================================
 
     const tbody = leftTable.querySelector("tbody");
@@ -198,14 +257,40 @@ loadButton.addEventListener("click", () => {
         const tr = document.createElement("tr");
 
 
-        row.forEach(value => {
+        // Категория
+        const categoryCell = document.createElement("td");
+        categoryCell.textContent = row.category;
+        tr.appendChild(categoryCell);
 
-            const td = document.createElement("td");
 
-            td.textContent = value;
+        // Суб категория
+        const subCategoryCell = document.createElement("td");
+        subCategoryCell.textContent = row.subCategory;
+        tr.appendChild(subCategoryCell);
 
-            tr.appendChild(td);
-        });
+
+        // Ингредиент
+        const ingredientCell = document.createElement("td");
+        ingredientCell.textContent = row.ingredient;
+        tr.appendChild(ingredientCell);
+
+
+        // Минимальное количество
+        const minCell = document.createElement("td");
+        minCell.textContent = row.minCount;
+        tr.appendChild(minCell);
+
+
+        // Максимальное количество
+        const maxCell = document.createElement("td");
+        maxCell.textContent = row.maxCount;
+        tr.appendChild(maxCell);
+
+
+        // Шанс
+        const chanceCell = document.createElement("td");
+        chanceCell.textContent = row.chance;
+        tr.appendChild(chanceCell);
 
 
         tbody.appendChild(tr);
@@ -213,16 +298,20 @@ loadButton.addEventListener("click", () => {
 
 
     // ========================================
-    // ОЧИЩАЕМ TEXTAREA
+    // Очищаем textarea
     // ========================================
 
     inputText.value = "";
 
+
+    console.log(
+        `Завантажено рядків: ${rows.length}`
+    );
 });
 
 
 // ============================================
-// ОЧИСТИТЬ ТАБЛИЦУ
+// ОЧИСТИТИ ТАБЛИЦЮ
 // ============================================
 
 clearTableButton.addEventListener("click", () => {
@@ -230,5 +319,4 @@ clearTableButton.addEventListener("click", () => {
     const tbody = leftTable.querySelector("tbody");
 
     tbody.innerHTML = "";
-
 });
