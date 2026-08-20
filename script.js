@@ -29,191 +29,119 @@ loadButton.addEventListener("click", () => {
 
     for (const line of lines) {
 
-        // ==========================================
-        // 1. Markdown-таблица с символами |
-        // ==========================================
-
-        if (line.includes("|")) {
-
-            let cells = line
-                .split("|")
-                .map(cell => cell.trim());
-
-            // Убираем пустые ячейки по краям
-            if (cells[0] === "") {
-                cells.shift();
-            }
-
-            if (cells[cells.length - 1] === "") {
-                cells.pop();
-            }
-
-            // Пропускаем строку-разделитель Markdown
-            if (
-                cells.length === 6 &&
-                cells.every(cell => /^:?-+:?$/.test(cell))
-            ) {
-                continue;
-            }
-
-            // Пропускаем заголовок
-            if (
-                cells.length === 6 &&
-                cells[0].toLowerCase() === "категорія"
-            ) {
-                continue;
-            }
-
-            if (cells.length === 6) {
-                rows.push(cells);
-            }
-
+        // Нас интересуют строки Markdown-таблицы
+        if (!line.includes("|")) {
             continue;
         }
 
+        let cells = line
+            .split("|")
+            .map(cell => {
+                return cell
+                    .trim()
+                    .replace(/\*\*/g, "");
+            });
 
-        // ==========================================
-        // 2. Таблица без | 
-        //    Например после копирования из браузера
-        // ==========================================
+        // Убираем пустые элементы в начале и конце
+        if (cells[0] === "") {
+            cells.shift();
+        }
 
-        // Пропускаем заголовок
+        if (cells[cells.length - 1] === "") {
+            cells.pop();
+        }
+
+
+        // ----------------------------------------
+        // Пропускаем строку заголовка
+        // ----------------------------------------
+
         if (
-            line.toLowerCase().includes("категорія") &&
-            line.toLowerCase().includes("інгредієнт")
+            cells.length === 6 &&
+            cells[0].toLowerCase() === "категорія"
         ) {
             continue;
         }
 
 
-        // Ищем последние 3 значения:
-        // Мин к-сть
-        // Макс к-сть
-        // Шанс
+        // ----------------------------------------
+        // Пропускаем строку Markdown-разделителя
+        // ----------------------------------------
 
-        const match = line.match(
-            /^(.*?)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?)\s+(\d+(?:[.,]\d+)?%)\s*$/
-        );
-
-        if (!match) {
+        if (
+            cells.length === 6 &&
+            cells.every(cell => {
+                return /^:?-+:?$/.test(cell);
+            })
+        ) {
             continue;
         }
 
-        const textPart = match[1].trim();
 
-        const min = match[2];
-        const max = match[3];
-        const chance = match[4];
+        // ----------------------------------------
+        // Проверяем количество колонок
+        // ----------------------------------------
 
-
-        // ==========================================
-        // Определяем категорию / подкатегорию /
-        // ингредиент
-        // ==========================================
-
-        const knownSubCategories = [
-            "Common",
-            "Uncommon",
-            "Rare",
-            "Epic",
-            "Legendary"
-        ];
-
-        let category = "";
-        let subCategory = "";
-        let ingredient = "";
-
-
-        // Ищем известную подкатегорию
-        let foundSubCategory = null;
-
-        for (const sub of knownSubCategories) {
-            const regex = new RegExp(
-                `\\s+${sub}\\s+`,
-                "i"
-            );
-
-            if (regex.test(textPart)) {
-                foundSubCategory = sub;
-                break;
-            }
+        if (cells.length !== 6) {
+            continue;
         }
 
 
-        if (foundSubCategory) {
+        // ----------------------------------------
+        // Получаем значения
+        // ----------------------------------------
 
-            const parts = textPart.split(
-                new RegExp(`\\s+${foundSubCategory}\\s+`, "i")
-            );
+        const category = cells[0];
+        const subCategory = cells[1];
+        const ingredient = cells[2];
+        const minCount = cells[3];
+        const maxCount = cells[4];
+        const chance = cells[5];
 
-            category = parts[0].trim();
-            subCategory = foundSubCategory;
-            ingredient = parts.slice(1).join(" ").trim();
 
-        } else {
+        // ----------------------------------------
+        // Проверяем обязательные поля
+        // ----------------------------------------
 
-            // Если подкатегория неизвестна,
-            // пробуем разделить по табуляции
-
-            const parts = textPart
-                .split(/\t+/)
-                .map(value => value.trim())
-                .filter(Boolean);
-
-            if (parts.length >= 3) {
-
-                category = parts[0];
-                subCategory = parts[1];
-                ingredient = parts.slice(2).join(" ");
-
-            } else {
-
-                // Последний запасной вариант:
-                // первые два слова = категория/подкатегория,
-                // остальное = ингредиент
-
-                const words = textPart.split(/\s+/);
-
-                if (words.length >= 3) {
-                    category = words[0];
-                    subCategory = words[1];
-                    ingredient = words.slice(2).join(" ");
-                }
-            }
+        if (
+            !category ||
+            !subCategory ||
+            !ingredient ||
+            !minCount ||
+            !maxCount
+        ) {
+            continue;
         }
 
 
-        if (category && subCategory && ingredient) {
+        // ----------------------------------------
+        // Добавляем строку
+        // ----------------------------------------
 
-            rows.push([
-                category,
-                subCategory,
-                ingredient,
-                min,
-                max,
-                chance
-            ]);
-        }
+        rows.push([
+            category,
+            subCategory,
+            ingredient,
+            minCount,
+            maxCount,
+            chance
+        ]);
     }
 
 
-    // ==========================================
-    // Проверяем результат
-    // ==========================================
+    // ----------------------------------------
+    // Если ничего не нашли
+    // ----------------------------------------
 
     if (rows.length === 0) {
-        alert(
-            "Не вдалося знайти дані таблиці.\n\n" +
-            "Переконайтеся, що таблиця має 6 колонок."
-        );
-
+        alert("Не вдалося знайти дані таблиці.");
         return;
     }
 
 
-    // ==========================================
-    // Добавляем строки в leftTable
-    // ==========================================
+    // ----------------------------------------
+    // Добавляем данные в leftTable
+    // ----------------------------------------
 
     rows.forEach(row => {
 
@@ -232,7 +160,7 @@ loadButton.addEventListener("click", () => {
     });
 
 
-    // Очищаем textarea
+    // Очищаем textarea после загрузки
     inputText.value = "";
 });
 
