@@ -12,43 +12,38 @@
 
         <!-- ЛЕВАЯ ЧАСТЬ -->
         <section class="panel left-panel">
-
-            <textarea
-                id="inputText"
-                placeholder="Введите текст..."
-            ></textarea>
-
-            <div class="table-wrapper">
-                <table id="leftTable">
-                    <thead>
-                        <tr>
-                            <th>Категорія</th>
-                            <th>Суб категорія</th>
-                            <th>Інгредієнт</th>
-                            <th>Мін к-сть</th>
-                            <th>Макс к-сть</th>
-                            <th>Шанс</th>
-                        </tr>
-                    </thead>
-            
-                    <tbody>
-                        <tr>
-                            <td>Приклад</td>
-                            <td>Приклад</td>
-                            <td>Інгредієнт</td>
-                            <td>1</td>
-                            <td>5</td>
-                            <td>50%</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <button id="clearTable" class="button danger">
-                Очистить таблицу
-            </button>
-
-        </section>
+    
+        <textarea
+            id="inputText"
+            placeholder="Вставте таблицю сюди..."
+        ></textarea>
+    
+        <button id="loadButton" class="button primary">
+            Завантажити
+        </button>
+    
+        <div class="table-wrapper">
+            <table id="leftTable">
+                <thead>
+                    <tr>
+                        <th>Категорія</th>
+                        <th>Суб категорія</th>
+                        <th>Інгредієнт</th>
+                        <th>Мін к-сть</th>
+                        <th>Макс к-сть</th>
+                        <th>Шанс</th>
+                    </tr>
+                </thead>
+    
+                <tbody></tbody>
+            </table>
+        </div>
+    
+        <button id="clearTable" class="button danger">
+            Очистити таблицю
+        </button>
+    
+    </section>
 
 
         <!-- ЦЕНТР -->
