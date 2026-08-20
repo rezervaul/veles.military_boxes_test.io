@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой сайт</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="container">
+
+        <!-- ЛЕВАЯ ЧАСТЬ -->
+        <section class="panel left-panel">
+
+            <textarea
+                id="inputText"
+                placeholder="Введите текст..."
+            ></textarea>
+
+            <div class="table-wrapper">
+                <table id="leftTable">
+                    <thead>
+                        <tr>
+                            <th>Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Пример</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button id="clearTable" class="button danger">
+                Очистить таблицу
+            </button>
+
+        </section>
+
+
+        <!-- ЦЕНТР -->
+        <section class="panel center-panel">
+
+            <button id="openButton" class="button primary">
+                Открыть
+            </button>
+
+            <div class="table-wrapper">
+                <table id="centerTable">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Пример</td>
+                            <td>123</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+
+        <!-- ПРАВАЯ ЧАСТЬ -->
+        <section class="panel right-panel">
+
+            <div class="table-wrapper">
+                <table id="rightTable">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Значение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Пример</td>
+                            <td>456</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button id="resetButton" class="button secondary">
+                Сброс
+            </button>
+
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
