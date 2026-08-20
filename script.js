@@ -4,6 +4,7 @@ const clearTableButton = document.getElementById("clearTable");
 const leftTable = document.getElementById("leftTable");
 
 
+
 // ============================================
 // Очистка содержимого ячейки
 // ============================================
@@ -12,6 +13,7 @@ function cleanCell(value) {
     return value
         .replace(/\*\*/g, "")
         .replace(/__/g, "")
+        .replace(/\s+/g, " ")
         .trim();
 }
 
@@ -93,6 +95,12 @@ loadButton.addEventListener("click", () => {
 
     const text = inputText.value;
 
+    console.log("ВСТАВЛЕННЫЙ ТЕКСТ:");
+console.log(text);
+
+console.log("ПЕРВАЯ СТРОКА:");
+console.log(text.split(/\r?\n/)[0]);
+    
     if (!text.trim()) {
         alert("Спочатку вставте таблицю.");
         return;
